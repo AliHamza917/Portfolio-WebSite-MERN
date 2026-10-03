@@ -3,7 +3,7 @@
  * Usage: node utills/seed.js
  * (Make sure .env is configured first)
  */
-require("dotenv").config({ path: "./utills/.env" });
+require("dotenv").config({ path: require("path").join(__dirname, ".env") });
 const mongoose = require("mongoose");
 const Project = require("../models/project-model");
 const Skill = require("../models/skill-model");
@@ -143,15 +143,19 @@ const seedDB = async () => {
     }
 
     // Create default admin if none exists
-    const adminExists = await User.findOne({ email: "admin@portfolio.com" });
-    if (!adminExists) {
+    const adminEmail = process.env.ADMIN_EMAIL;
+    const adminPassword = process.env.ADMIN_PASSWORD;
+    if (!adminEmail || !adminPassword) {
+      console.log("⚠️  ADMIN_EMAIL / ADMIN_PASSWORD not set - skipped admin creation.");
+    } else if (!(await User.findOne({ email: adminEmail.toLowerCase() }))) {
       await User.create({
-        name: "Ali Hamza",
-        email: "admin@portfolio.com",
-        password: "admin123", // Change this after first login!
+        name: process.env.ADMIN_NAME || "Admin",
+        email: adminEmail,
+        password: adminPassword,
       });
-      console.log("✅ Created default admin (email: admin@portfolio.com / password: admin123)");
-      console.log("⚠️  Please change the password after first login!");
+      console.log(`✅ Created admin: ${adminEmail}`);
+    } else {
+      console.log("Admin already exists");
     }
 
     console.log("\n🎉 Seeding completed successfully!");

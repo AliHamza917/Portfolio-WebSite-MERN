@@ -61,7 +61,7 @@ const Login = () => {
             </button>
           </form>
           <p className="text-center text-sm mt-4 opacity-70">
-            First time? Register via API: POST /api/auth/register
+            Admin access only
           </p>
         </div>
       </div>

@@ -157,6 +157,8 @@ module.exports = DBconnection;
 
 ---
 
+> 📘 To put the site online, follow **[DEPLOYMENT_GUIDE.md](DEPLOYMENT_GUIDE.md)**.
+
 ## 🚀 Installation & Setup
 
 ### 1. Clone the repository
@@ -199,7 +201,7 @@ After configuring `.env` and installing dependencies, run the seed script to add
 
 ```bash
 cd server
-node utills/seed.js
+npm run seed
 ```
 
 This will create:
@@ -249,6 +251,9 @@ POST http://localhost:8000/api/auth/register
 PORT=8000
 MONGO_URI=your_mongodb_connection_string
 JWT_SECRET=your_jwt_secret_key
+CLIENT_URL=https://your-frontend.vercel.app
+ADMIN_EMAIL=you@example.com
+ADMIN_PASSWORD=choose_a_strong_password
 ```
 
 ---
@@ -266,4 +271,3 @@ Developer And IT Support Officer
 ## 📄 License
 
 This project is open source and available under the [MIT License](LICENSE).
-# Portfolio-WebSite-MERN

@@ -11,8 +11,13 @@ const generateToken = (id) => {
 
 // @desc    Register new admin
 // @route   POST /api/auth/register
-// @access  Public (only first time / for setup)
+// @access  Public ONLY while no admin exists (first-time setup). Locked afterwards.
 const registerUser = asyncHandler(async (req, res) => {
+  if ((await User.countDocuments()) > 0) {
+    res.status(403);
+    throw new Error("Registration is closed. An admin already exists.");
+  }
+
   const { name, email, password } = req.body;
 
   if (!name || !email || !password) {
