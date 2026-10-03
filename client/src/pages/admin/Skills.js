@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import axios from "axios";
 import { toast } from "react-toastify";
 
@@ -11,21 +11,23 @@ const AdminSkills = () => {
   });
   const [editingId, setEditingId] = useState(null);
 
-  const token = localStorage.getItem("adminToken");
-  const config = { headers: { Authorization: `Bearer ${token}` } };
+  const getAuthConfig = () => {
+    const token = localStorage.getItem("adminToken");
+    return { headers: { Authorization: `Bearer ${token}` } };
+  };
 
-  const fetchSkills = async () => {
+  const fetchSkills = useCallback(async () => {
     try {
       const { data } = await axios.get("/api/skills");
       setSkills(data);
     } catch (error) {
       toast.error("Failed to fetch skills");
     }
-  };
+  }, []);
 
   useEffect(() => {
     fetchSkills();
-  }, []);
+  }, [fetchSkills]);
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -34,6 +36,7 @@ const AdminSkills = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
+      const config = getAuthConfig();
       if (editingId) {
         await axios.put(`/api/skills/${editingId}`, formData, config);
         toast.success("Skill updated");
@@ -61,7 +64,7 @@ const AdminSkills = () => {
   const handleDelete = async (id) => {
     if (!window.confirm("Delete this skill?")) return;
     try {
-      await axios.delete(`/api/skills/${id}`, config);
+      await axios.delete(`/api/skills/${id}`, getAuthConfig());
       toast.success("Skill deleted");
       fetchSkills();
     } catch (error) {

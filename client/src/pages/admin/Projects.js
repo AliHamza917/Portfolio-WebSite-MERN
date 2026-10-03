@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import axios from "axios";
 import { toast } from "react-toastify";
 
@@ -16,21 +16,23 @@ const AdminProjects = () => {
   const [editingId, setEditingId] = useState(null);
   const [loading, setLoading] = useState(false);
 
-  const token = localStorage.getItem("adminToken");
-  const config = { headers: { Authorization: `Bearer ${token}` } };
+  const getAuthConfig = () => {
+    const token = localStorage.getItem("adminToken");
+    return { headers: { Authorization: `Bearer ${token}` } };
+  };
 
-  const fetchProjects = async () => {
+  const fetchProjects = useCallback(async () => {
     try {
       const { data } = await axios.get("/api/projects");
       setProjects(data);
     } catch (error) {
       toast.error("Failed to fetch projects");
     }
-  };
+  }, []);
 
   useEffect(() => {
     fetchProjects();
-  }, []);
+  }, [fetchProjects]);
 
   const handleChange = (e) => {
     const value = e.target.type === "checkbox" ? e.target.checked : e.target.value;
@@ -48,6 +50,7 @@ const AdminProjects = () => {
     };
 
     try {
+      const config = getAuthConfig();
       if (editingId) {
         await axios.put(`/api/projects/${editingId}`, payload, config);
         toast.success("Project updated");
@@ -89,7 +92,7 @@ const AdminProjects = () => {
   const handleDelete = async (id) => {
     if (!window.confirm("Delete this project?")) return;
     try {
-      await axios.delete(`/api/projects/${id}`, config);
+      await axios.delete(`/api/projects/${id}`, getAuthConfig());
       toast.success("Project deleted");
       fetchProjects();
     } catch (error) {

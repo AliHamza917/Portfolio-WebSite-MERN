@@ -1,29 +1,30 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import axios from "axios";
 import { toast } from "react-toastify";
 
 const AdminMessages = () => {
   const [messages, setMessages] = useState([]);
 
-  const token = localStorage.getItem("adminToken");
-  const config = { headers: { Authorization: `Bearer ${token}` } };
-
-  const fetchMessages = async () => {
+  const fetchMessages = useCallback(async () => {
     try {
+      const token = localStorage.getItem("adminToken");
+      const config = { headers: { Authorization: `Bearer ${token}` } };
       const { data } = await axios.get("/api/contact", config);
       setMessages(data);
     } catch (error) {
       toast.error("Failed to fetch messages");
     }
-  };
+  }, []);
 
   useEffect(() => {
     fetchMessages();
-  }, []);
+  }, [fetchMessages]);
 
   const handleDelete = async (id) => {
     if (!window.confirm("Delete this message?")) return;
     try {
+      const token = localStorage.getItem("adminToken");
+      const config = { headers: { Authorization: `Bearer ${token}` } };
       await axios.delete(`/api/contact/${id}`, config);
       toast.success("Message deleted");
       fetchMessages();
@@ -34,6 +35,8 @@ const AdminMessages = () => {
 
   const markRead = async (id) => {
     try {
+      const token = localStorage.getItem("adminToken");
+      const config = { headers: { Authorization: `Bearer ${token}` } };
       await axios.put(`/api/contact/${id}`, {}, config);
       fetchMessages();
     } catch (error) {
