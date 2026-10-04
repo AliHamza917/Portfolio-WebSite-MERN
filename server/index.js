@@ -1,6 +1,10 @@
+const fs = require("fs");
 const path = require("path");
-// Loads server/utills/.env locally. On Vercel/Render the variables come from the dashboard.
-require("dotenv").config({ path: path.join(__dirname, "utills", ".env") });
+// Loads server/utills/.env or server/.env locally. On Vercel/Render the variables come from the dashboard.
+const envPath = fs.existsSync(path.join(__dirname, "utills", ".env"))
+  ? path.join(__dirname, "utills", ".env")
+  : path.join(__dirname, ".env");
+require("dotenv").config({ path: envPath });
 
 const express = require("express");
 const cors = require("cors");
@@ -18,6 +22,7 @@ const Port = process.env.PORT || 8000;
 // Allowed frontends: localhost + any URLs listed in CLIENT_URL (comma separated)
 const allowedOrigins = [
   "http://localhost:3000",
+  "http://127.0.0.1:3000",
   ...(process.env.CLIENT_URL || "")
     .split(",")
     .map((u) => u.trim().replace(/\/$/, ""))

@@ -1,0 +1,19 @@
+{
+  "name": "portfolio-mern-root",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "start": "concurrently -n \"SERVER,CLIENT\" -c \"blue,green\" \"npm --prefix server run dev\" \"npm --prefix client start\"",
+    "dev": "concurrently -n \"SERVER,CLIENT\" -c \"blue,green\" \"npm --prefix server run dev\" \"npm --prefix client start\"",
+    "server": "npm --prefix server run dev",
+    "client": "npm --prefix client start",
+    "seed": "npm --prefix server run seed"
+  },
+  "dependencies": {
+    "dotenv": "^18.0.5",
+    "mongoose": "^9.10.4"
+  },
+  "devDependencies": {
+    "concurrently": "^10.0.5"
+  }
+}
