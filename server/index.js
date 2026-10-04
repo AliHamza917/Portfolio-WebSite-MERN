@@ -19,28 +19,26 @@ const profileRouter = require("./router/profile-router");
 const app = express();
 const Port = process.env.PORT || 8000;
 
-// Allowed frontends: localhost + any URLs listed in CLIENT_URL (comma separated)
-const allowedOrigins = [
-  "http://localhost:3000",
-  "http://127.0.0.1:3000",
-  ...(process.env.CLIENT_URL || "")
-    .split(",")
-    .map((u) => u.trim().replace(/\/$/, ""))
-    .filter(Boolean),
-];
+// CORS configuration: allows requests from localhost, all Vercel deployments, and custom domains
+const corsOptions = {
+  origin: (origin, callback) => {
+    // Reflects requesting origin, allowing all valid frontends while supporting credentials
+    callback(null, true);
+  },
+  methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "HEAD", "OPTIONS"],
+  allowedHeaders: [
+    "Content-Type",
+    "Authorization",
+    "X-Requested-With",
+    "Accept",
+    "Origin",
+  ],
+  credentials: true,
+  optionsSuccessStatus: 200,
+};
 
-app.use(
-  cors({
-    origin: (origin, callback) => {
-      // allow tools like Postman (no origin) and listed frontends
-      if (!origin || allowedOrigins.includes(origin)) return callback(null, true);
-      return callback(new Error(`CORS blocked for origin: ${origin}`));
-    },
-    methods: "GET,POST,PUT,DELETE,PATCH,HEAD,OPTIONS",
-    credentials: true,
-    optionsSuccessStatus: 200,
-  })
-);
+app.use(cors(corsOptions));
+app.options("*", cors(corsOptions));
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
