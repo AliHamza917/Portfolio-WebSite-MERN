@@ -44,7 +44,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // Health check (does not need the database)
-app.get("/", (req, res) => {
+app.get(["/", "/api"], (req, res) => {
   res.json({ message: "Portfolio API is running successfully" });
 });
 
