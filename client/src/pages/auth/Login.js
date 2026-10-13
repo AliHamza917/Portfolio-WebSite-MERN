@@ -3,6 +3,7 @@ import { useNavigate, Link } from "react-router-dom";
 import axios from "axios";
 import { toast } from "react-toastify";
 import { FaArrowLeft } from "react-icons/fa";
+import ThemeToggle from "../../global/components/ThemeToggle";
 
 const Login = () => {
   const [formData, setFormData] = useState({ email: "", password: "" });
@@ -41,6 +42,7 @@ const Login = () => {
               <FaArrowLeft className="text-sm" />
               <span>Back to Website</span>
             </Link>
+            <ThemeToggle />
           </div>
           <h2 className="card-title text-2xl justify-center mb-2 font-bold text-primary">
             Admin Login

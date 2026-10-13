@@ -1,5 +1,6 @@
 import { Outlet, Link, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
+import ThemeToggle from "../components/ThemeToggle";
 
 const AdminLayout = () => {
   const navigate = useNavigate();
@@ -13,13 +14,14 @@ const AdminLayout = () => {
 
   return (
     <div className="min-h-screen bg-base-200">
-      <div className="navbar bg-base-300 shadow-lg">
+      <div className="navbar bg-base-300 shadow-lg px-4">
         <div className="flex-1">
-          <Link to="/admin" className="btn btn-ghost text-xl">
+          <Link to="/admin" className="btn btn-ghost text-xl font-bold">
             Admin Panel
           </Link>
         </div>
-        <div className="flex-none gap-2">
+        <div className="flex-none gap-2 items-center">
+          <ThemeToggle />
           <Link to="/" className="btn btn-ghost btn-sm">
             View Site
           </Link>

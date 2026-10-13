@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import axios from "axios";
+import ThemeToggle from "./ThemeToggle";
 
 const Navbar = () => {
   const [profile, setProfile] = useState(null);
@@ -18,7 +19,7 @@ const Navbar = () => {
   }, []);
 
   return (
-    <div className="navbar bg-base-300 sticky top-0 z-50 shadow-md">
+    <div className="navbar bg-base-300/85 backdrop-blur-md sticky top-0 z-50 shadow-md border-b border-base-content/10 transition-colors duration-300">
       <div className="navbar-start">
         <div className="dropdown">
           <div tabIndex={0} role="button" className="btn btn-ghost lg:hidden">
@@ -61,7 +62,8 @@ const Navbar = () => {
           <li><a href="#contact" className="hover:text-primary transition-colors">Contact</a></li>
         </ul>
       </div>
-      <div className="navbar-end">
+      <div className="navbar-end gap-2">
+        <ThemeToggle />
         <Link to="/admin/login" className="btn btn-primary btn-sm hover:scale-105 active:scale-95 transition-all shadow">
           Admin
         </Link>
