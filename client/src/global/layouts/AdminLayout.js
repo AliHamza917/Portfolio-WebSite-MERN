@@ -48,6 +48,9 @@ const AdminLayout = () => {
             <li>
               <Link to="/admin/profile">Profile</Link>
             </li>
+            <li>
+              <Link to="/admin/change-password">Change Password</Link>
+            </li>
           </ul>
         </div>
 

@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
 import axios from "axios";
 import { toast } from "react-toastify";
 
@@ -182,10 +183,14 @@ const AdminProfile = () => {
             onChange={handleChange}
           />
 
-          <div className="md:col-span-2">
+          <div className="md:col-span-2 flex flex-wrap justify-between items-center gap-4 pt-2 border-t border-base-300">
             <button type="submit" className="btn btn-primary" disabled={loading}>
               {loading ? "Saving..." : "Save Profile"}
             </button>
+            <Link to="/admin/change-password" className="btn btn-outline btn-secondary btn-sm gap-2">
+              <span>Change Account Password</span>
+              <span>&rarr;</span>
+            </Link>
           </div>
         </div>
       </form>

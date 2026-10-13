@@ -49,20 +49,20 @@ const Navbar = () => {
           </ul>
         </div>
         <a href="#home" className="btn btn-ghost text-xl font-bold">
-          {profile?.name || "Portfolio"}
+          <span className="gradient-text">{profile?.name || "Portfolio"}</span>
         </a>
       </div>
       <div className="navbar-center hidden lg:flex">
-        <ul className="menu menu-horizontal px-1 gap-1">
-          <li><a href="#home">Home</a></li>
-          <li><a href="#about">About</a></li>
-          <li><a href="#skills">Skills</a></li>
-          <li><a href="#projects">Projects</a></li>
-          <li><a href="#contact">Contact</a></li>
+        <ul className="menu menu-horizontal px-1 gap-1 font-medium">
+          <li><a href="#home" className="hover:text-primary transition-colors">Home</a></li>
+          <li><a href="#about" className="hover:text-primary transition-colors">About</a></li>
+          <li><a href="#skills" className="hover:text-primary transition-colors">Skills</a></li>
+          <li><a href="#projects" className="hover:text-primary transition-colors">Projects</a></li>
+          <li><a href="#contact" className="hover:text-primary transition-colors">Contact</a></li>
         </ul>
       </div>
       <div className="navbar-end">
-        <Link to="/admin/login" className="btn btn-primary btn-sm">
+        <Link to="/admin/login" className="btn btn-primary btn-sm hover:scale-105 active:scale-95 transition-all shadow">
           Admin
         </Link>
       </div>

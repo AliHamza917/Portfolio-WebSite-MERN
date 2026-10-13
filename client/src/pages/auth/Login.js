@@ -1,7 +1,8 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import axios from "axios";
 import { toast } from "react-toastify";
+import { FaArrowLeft } from "react-icons/fa";
 
 const Login = () => {
   const [formData, setFormData] = useState({ email: "", password: "" });
@@ -29,10 +30,24 @@ const Login = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-base-200">
-      <div className="card w-full max-w-md bg-base-100 shadow-xl">
+    <div className="min-h-screen flex items-center justify-center bg-base-200 px-4 py-8 relative">
+      <div className="card w-full max-w-md bg-base-100 shadow-2xl transition-all duration-300 border border-base-300">
         <div className="card-body">
-          <h2 className="card-title text-2xl justify-center mb-4">Admin Login</h2>
+          <div className="flex items-center justify-between mb-4">
+            <Link
+              to="/"
+              className="btn btn-ghost btn-sm gap-2 hover:bg-base-200 transition-colors"
+            >
+              <FaArrowLeft className="text-sm" />
+              <span>Back to Website</span>
+            </Link>
+          </div>
+          <h2 className="card-title text-2xl justify-center mb-2 font-bold text-primary">
+            Admin Login
+          </h2>
+          <p className="text-center text-xs opacity-60 mb-4">
+            Enter your credentials to access the portfolio dashboard
+          </p>
           <form onSubmit={handleSubmit} className="space-y-4">
             <input
               type="email"

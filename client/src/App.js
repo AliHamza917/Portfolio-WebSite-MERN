@@ -8,6 +8,7 @@ import AdminProjects from "./pages/admin/Projects";
 import AdminSkills from "./pages/admin/Skills";
 import AdminMessages from "./pages/admin/Messages";
 import AdminProfile from "./pages/admin/Profile";
+import ChangePassword from "./pages/admin/ChangePassword";
 import PrivateRoute from "./global/components/PrivateRoute";
 
 function App() {
@@ -35,6 +36,7 @@ function App() {
         <Route path="skills" element={<AdminSkills />} />
         <Route path="messages" element={<AdminMessages />} />
         <Route path="profile" element={<AdminProfile />} />
+        <Route path="change-password" element={<ChangePassword />} />
       </Route>
     </Routes>
   );
