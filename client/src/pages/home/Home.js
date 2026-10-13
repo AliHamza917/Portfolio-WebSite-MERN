@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import axios from "axios";
 import { toast } from "react-toastify";
 import {
@@ -14,6 +14,14 @@ import {
   FaServer,
   FaPalette,
   FaPaperPlane,
+  FaDatabase,
+  FaTools,
+  FaSearch,
+  FaFilter,
+  FaSortAmountDown,
+  FaThLarge,
+  FaLayerGroup,
+  FaStar,
 } from "react-icons/fa";
 
 const Home = () => {
@@ -27,6 +35,15 @@ const Home = () => {
     message: "",
   });
   const [loading, setLoading] = useState(false);
+
+  // Arrangement and Filter states
+  const [projectFilter, setProjectFilter] = useState("All");
+  const [projectSearch, setProjectSearch] = useState("");
+  const [projectSort, setProjectSort] = useState("default");
+
+  const [skillCategory, setSkillCategory] = useState("All");
+  const [skillSort, setSkillSort] = useState("default");
+  const [skillViewMode, setSkillViewMode] = useState("grouped"); // "grouped" | "grid"
 
   useEffect(() => {
     const fetchData = async () => {
@@ -64,7 +81,124 @@ const Home = () => {
     }
   };
 
-  // Group skills by category if available
+  // Extract all unique skills/tech tags from projects for filtering
+  const projectTechOptions = useMemo(() => {
+    const set = new Set();
+    projects.forEach((p) => {
+      p.techStack?.forEach((t) => {
+        if (t.trim()) set.add(t.trim());
+      });
+    });
+    return ["All", ...Array.from(set).slice(0, 8)];
+  }, [projects]);
+
+  // Filtered and Arranged Projects
+  const filteredProjects = useMemo(() => {
+    let result = [...projects];
+
+    // Filter by tech/skill tag
+    if (projectFilter !== "All") {
+      result = result.filter((p) =>
+        p.techStack?.some(
+          (t) => t.toLowerCase() === projectFilter.toLowerCase()
+        )
+      );
+    }
+
+    // Search query
+    if (projectSearch.trim()) {
+      const q = projectSearch.toLowerCase();
+      result = result.filter(
+        (p) =>
+          p.title?.toLowerCase().includes(q) ||
+          p.description?.toLowerCase().includes(q) ||
+          p.techStack?.some((t) => t.toLowerCase().includes(q))
+      );
+    }
+
+    // Sort / Arrange
+    result.sort((a, b) => {
+      if (projectSort === "featured") {
+        if (a.featured && !b.featured) return -1;
+        if (!a.featured && b.featured) return 1;
+        return (a.order ?? 0) - (b.order ?? 0);
+      }
+      if (projectSort === "newest") {
+        return new Date(b.createdAt) - new Date(a.createdAt);
+      }
+      if (projectSort === "alphabetical") {
+        return (a.title || "").localeCompare(b.title || "");
+      }
+      // default: by order
+      return (a.order ?? 0) - (b.order ?? 0);
+    });
+
+    return result;
+  }, [projects, projectFilter, projectSearch, projectSort]);
+
+  // Filtered and Arranged Skills
+  const filteredSkills = useMemo(() => {
+    let result = [...skills];
+
+    // Filter by category
+    if (skillCategory !== "All") {
+      result = result.filter(
+        (s) => s.category?.toLowerCase() === skillCategory.toLowerCase()
+      );
+    }
+
+    // Sort / Arrange
+    result.sort((a, b) => {
+      if (skillSort === "proficiency") {
+        return (b.level ?? 0) - (a.level ?? 0);
+      }
+      if (skillSort === "alphabetical") {
+        return (a.name || "").localeCompare(b.name || "");
+      }
+      // default: by order, then category
+      if ((a.order ?? 0) !== (b.order ?? 0)) {
+        return (a.order ?? 0) - (b.order ?? 0);
+      }
+      return (a.category || "").localeCompare(b.category || "");
+    });
+
+    return result;
+  }, [skills, skillCategory, skillSort]);
+
+  // Skills Grouped by Category
+  const groupedSkills = useMemo(() => {
+    const groups = {
+      Frontend: [],
+      Backend: [],
+      Database: [],
+      Tools: [],
+      Other: [],
+    };
+
+    filteredSkills.forEach((s) => {
+      const cat = s.category || "Other";
+      if (!groups[cat]) groups[cat] = [];
+      groups[cat].push(s);
+    });
+
+    return Object.entries(groups).filter(([_, items]) => items.length > 0);
+  }, [filteredSkills]);
+
+  const getCategoryIcon = (cat) => {
+    switch (cat) {
+      case "Frontend":
+        return <FaCode className="text-primary" />;
+      case "Backend":
+        return <FaServer className="text-secondary" />;
+      case "Database":
+        return <FaDatabase className="text-accent" />;
+      case "Tools":
+        return <FaTools className="text-info" />;
+      default:
+        return <FaPalette className="text-warning" />;
+    }
+  };
+
   const coreTech = ["React", "Node.js", "Express", "MongoDB", "Tailwind CSS", "JavaScript"];
 
   return (
@@ -74,7 +208,6 @@ const Home = () => {
         id="home"
         className="relative min-h-[92vh] flex items-center justify-center py-20 px-4 bg-grid-pattern"
       >
-        {/* Ambient background glow */}
         <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-primary/15 rounded-full blur-3xl pointer-events-none -z-0"></div>
         <div className="absolute bottom-1/4 right-1/4 w-80 h-80 bg-secondary/15 rounded-full blur-3xl pointer-events-none -z-0"></div>
 
@@ -215,7 +348,6 @@ const Home = () => {
             </p>
           </div>
 
-          {/* Pillars Highlights */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
             <div className="card bg-base-100 shadow-lg card-hover border border-base-content/10">
               <div className="card-body">
@@ -254,7 +386,6 @@ const Home = () => {
             </div>
           </div>
 
-          {/* Detailed Bio Card */}
           <div className="card bg-base-100 shadow-xl card-hover-subtle border border-base-content/10">
             <div className="card-body p-8">
               <h3 className="text-xl font-bold mb-3 flex items-center gap-2">
@@ -284,25 +415,132 @@ const Home = () => {
         </div>
       </section>
 
-      {/* Skills Section */}
+      {/* Skills Section with Arrange & Filter */}
       <section id="skills" className="py-24 px-4 bg-base-100">
         <div className="container mx-auto max-w-5xl">
-          <div className="text-center mb-16">
+          <div className="text-center mb-10">
             <h2 className="text-3xl sm:text-5xl font-extrabold tracking-tight mb-3">
               Technical <span className="gradient-text">Skills</span>
             </h2>
             <p className="text-sm sm:text-base opacity-70 max-w-lg mx-auto">
-              Technologies and tools I use to bring ideas to reality.
+              Filter by category or arrange by proficiency level.
             </p>
           </div>
 
-          {skills.length === 0 ? (
-            <p className="text-center opacity-70">
-              No skills added yet. Add them easily from the Admin Panel.
-            </p>
+          {/* Skill Filter & Arrange Toolbar */}
+          <div className="flex flex-col md:flex-row items-center justify-between gap-4 mb-8 bg-base-200/60 p-4 rounded-2xl border border-base-content/10">
+            {/* Category Filter Pills */}
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="text-xs font-semibold opacity-60 flex items-center gap-1.5 mr-1">
+                <FaFilter className="text-primary" /> Filter:
+              </span>
+              {["All", "Frontend", "Backend", "Database", "Tools"].map((cat) => (
+                <button
+                  key={cat}
+                  onClick={() => setSkillCategory(cat)}
+                  className={`btn btn-xs rounded-full transition-all ${
+                    skillCategory === cat
+                      ? "btn-primary shadow-sm"
+                      : "btn-ghost hover:bg-base-300"
+                  }`}
+                >
+                  {cat}
+                </button>
+              ))}
+            </div>
+
+            {/* Arrange / Sort & View Controls */}
+            <div className="flex items-center gap-3 w-full md:w-auto justify-end">
+              <div className="flex items-center gap-1.5">
+                <FaSortAmountDown className="text-xs opacity-60" />
+                <select
+                  value={skillSort}
+                  onChange={(e) => setSkillSort(e.target.value)}
+                  className="select select-xs select-bordered rounded-lg bg-base-100 font-medium"
+                >
+                  <option value="default">Default Order</option>
+                  <option value="proficiency">Proficiency (High &rarr; Low)</option>
+                  <option value="alphabetical">Name (A &rarr; Z)</option>
+                </select>
+              </div>
+
+              {/* View Mode Toggle: Grouped vs Grid */}
+              <div className="join border border-base-content/10 rounded-lg p-0.5 bg-base-100">
+                <button
+                  onClick={() => setSkillViewMode("grouped")}
+                  className={`join-item btn btn-xs px-2.5 ${
+                    skillViewMode === "grouped" ? "btn-primary" : "btn-ghost"
+                  }`}
+                  title="Group by Category"
+                >
+                  <FaLayerGroup />
+                </button>
+                <button
+                  onClick={() => setSkillViewMode("grid")}
+                  className={`join-item btn btn-xs px-2.5 ${
+                    skillViewMode === "grid" ? "btn-primary" : "btn-ghost"
+                  }`}
+                  title="Grid View"
+                >
+                  <FaThLarge />
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {filteredSkills.length === 0 ? (
+            <div className="text-center py-12 bg-base-200/40 rounded-2xl border border-dashed border-base-content/20">
+              <p className="opacity-70">No skills match the selected filter.</p>
+              <button
+                onClick={() => setSkillCategory("All")}
+                className="btn btn-sm btn-ghost text-primary mt-2"
+              >
+                Reset Filter
+              </button>
+            </div>
+          ) : skillViewMode === "grouped" && skillCategory === "All" ? (
+            /* Grouped View by Category */
+            <div className="space-y-8">
+              {groupedSkills.map(([cat, catSkills]) => (
+                <div
+                  key={cat}
+                  className="card bg-base-200/40 border border-base-content/10 p-6 rounded-2xl shadow-sm"
+                >
+                  <h3 className="text-xl font-bold flex items-center gap-2.5 mb-6 pb-3 border-b border-base-content/10">
+                    {getCategoryIcon(cat)}
+                    <span>{cat}</span>
+                    <span className="badge badge-sm badge-ghost opacity-70">
+                      {catSkills.length}
+                    </span>
+                  </h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+                    {catSkills.map((skill) => (
+                      <div
+                        key={skill._id}
+                        className="card bg-base-100 shadow-md card-hover border border-base-content/5 p-4 rounded-xl"
+                      >
+                        <div className="flex justify-between items-center mb-2">
+                          <span className="font-bold text-sm">{skill.name}</span>
+                          <span className="badge badge-primary badge-outline text-xs font-semibold">
+                            {skill.level}%
+                          </span>
+                        </div>
+                        <div className="w-full bg-base-300 rounded-full h-2 overflow-hidden">
+                          <div
+                            className="bg-primary h-2 rounded-full transition-all duration-1000 ease-out"
+                            style={{ width: `${skill.level}%` }}
+                          ></div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
           ) : (
+            /* Unified Grid View */
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {skills.map((skill) => (
+              {filteredSkills.map((skill) => (
                 <div
                   key={skill._id}
                   className="card bg-base-200/60 shadow-md card-hover border border-base-content/10 hover:border-primary/40 transition-all"
@@ -331,31 +569,113 @@ const Home = () => {
         </div>
       </section>
 
-      {/* Projects Section */}
+      {/* Projects Section with Arrange by Skills & Search */}
       <section id="projects" className="py-24 px-4 bg-base-200/50">
         <div className="container mx-auto max-w-6xl">
-          <div className="text-center mb-16">
+          <div className="text-center mb-10">
             <h2 className="text-3xl sm:text-5xl font-extrabold tracking-tight mb-3">
               Featured <span className="gradient-text">Projects</span>
             </h2>
             <p className="text-sm sm:text-base opacity-70 max-w-lg mx-auto">
-              Real-world web applications and projects built with modern frameworks.
+              Filter and arrange projects by skills, tech stack, or search keyword.
             </p>
           </div>
 
-          {projects.length === 0 ? (
-            <p className="text-center opacity-70">
-              No projects added yet. Add projects from the Admin Panel.
-            </p>
+          {/* Project Filtering & Sorting Toolbar */}
+          <div className="bg-base-100 p-5 rounded-2xl border border-base-content/10 shadow-lg mb-10 space-y-4">
+            <div className="flex flex-col md:flex-row gap-4 items-center justify-between">
+              {/* Search Bar */}
+              <div className="relative w-full md:w-80">
+                <FaSearch className="absolute left-3.5 top-1/2 -translate-y-1/2 text-sm opacity-50" />
+                <input
+                  type="text"
+                  placeholder="Search projects or skills..."
+                  value={projectSearch}
+                  onChange={(e) => setProjectSearch(e.target.value)}
+                  className="input input-bordered input-sm w-full pl-9 rounded-lg"
+                />
+              </div>
+
+              {/* Sort / Arrange Dropdown & Count */}
+              <div className="flex items-center gap-3 w-full md:w-auto justify-between md:justify-end">
+                <span className="text-xs opacity-60 font-medium">
+                  Showing <strong>{filteredProjects.length}</strong> of {projects.length}
+                </span>
+                <div className="flex items-center gap-1.5">
+                  <FaSortAmountDown className="text-xs opacity-60" />
+                  <select
+                    value={projectSort}
+                    onChange={(e) => setProjectSort(e.target.value)}
+                    className="select select-xs select-bordered rounded-lg bg-base-200 font-medium"
+                  >
+                    <option value="default">Default Order</option>
+                    <option value="featured">Featured First</option>
+                    <option value="newest">Newest First</option>
+                    <option value="alphabetical">Title (A &rarr; Z)</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            {/* Filter by Skill / Tech Chips */}
+            <div className="flex flex-wrap items-center gap-1.5 pt-2 border-t border-base-content/10">
+              <span className="text-xs font-semibold opacity-60 flex items-center gap-1 mr-1">
+                <FaFilter className="text-primary text-xs" /> Arrange by Skill:
+              </span>
+              {projectTechOptions.map((tech) => (
+                <button
+                  key={tech}
+                  onClick={() => setProjectFilter(tech)}
+                  className={`btn btn-xs rounded-full transition-all ${
+                    projectFilter === tech
+                      ? "btn-primary shadow-sm"
+                      : "btn-ghost bg-base-200/60 hover:bg-base-300"
+                  }`}
+                >
+                  {tech}
+                </button>
+              ))}
+              {(projectFilter !== "All" || projectSearch) && (
+                <button
+                  onClick={() => {
+                    setProjectFilter("All");
+                    setProjectSearch("");
+                  }}
+                  className="btn btn-xs btn-ghost text-error ml-auto"
+                >
+                  Clear Filters
+                </button>
+              )}
+            </div>
+          </div>
+
+          {filteredProjects.length === 0 ? (
+            <div className="text-center py-16 bg-base-100 rounded-2xl border border-dashed border-base-content/20">
+              <p className="text-lg opacity-70 mb-2">No projects match your filter criteria.</p>
+              <button
+                onClick={() => {
+                  setProjectFilter("All");
+                  setProjectSearch("");
+                }}
+                className="btn btn-sm btn-primary mt-2"
+              >
+                View All Projects
+              </button>
+            </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {projects.map((project) => (
+              {filteredProjects.map((project) => (
                 <div
                   key={project._id}
                   className="card bg-base-100 shadow-xl card-hover group border border-base-content/10 overflow-hidden flex flex-col justify-between"
                 >
                   {project.image ? (
                     <figure className="overflow-hidden h-52 bg-base-300 relative">
+                      {project.featured && (
+                        <div className="absolute top-3 right-3 z-10 badge badge-warning gap-1 font-semibold text-xs shadow-md">
+                          <FaStar className="text-xs" /> Featured
+                        </div>
+                      )}
                       <img
                         src={project.image}
                         alt={project.title}
@@ -363,7 +683,12 @@ const Home = () => {
                       />
                     </figure>
                   ) : (
-                    <div className="h-44 bg-gradient-to-br from-primary/15 via-secondary/10 to-base-300 flex items-center justify-center p-6 border-b border-base-content/10">
+                    <div className="h-44 bg-gradient-to-br from-primary/15 via-secondary/10 to-base-300 flex items-center justify-center p-6 border-b border-base-content/10 relative">
+                      {project.featured && (
+                        <div className="absolute top-3 right-3 z-10 badge badge-warning gap-1 font-semibold text-xs shadow-md">
+                          <FaStar className="text-xs" /> Featured
+                        </div>
+                      )}
                       <FaCode className="text-4xl opacity-30 text-primary" />
                     </div>
                   )}
@@ -378,12 +703,18 @@ const Home = () => {
                       </p>
                       <div className="flex flex-wrap gap-1.5 my-3">
                         {project.techStack?.map((tech, i) => (
-                          <span
+                          <button
                             key={i}
-                            className="badge badge-sm bg-base-200 border border-base-content/10 font-medium text-xs"
+                            onClick={() => setProjectFilter(tech)}
+                            className={`badge badge-sm cursor-pointer transition-all ${
+                              projectFilter.toLowerCase() === tech.toLowerCase()
+                                ? "badge-primary"
+                                : "bg-base-200 border border-base-content/10 hover:border-primary"
+                            }`}
+                            title={`Filter by ${tech}`}
                           >
                             {tech}
-                          </span>
+                          </button>
                         ))}
                       </div>
                     </div>
