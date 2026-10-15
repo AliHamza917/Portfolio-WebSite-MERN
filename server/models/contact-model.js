@@ -24,6 +24,13 @@ const contactSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
+    reply: {
+      type: String,
+      default: "",
+    },
+    repliedAt: {
+      type: Date,
+    },
   },
   { timestamps: true }
 );

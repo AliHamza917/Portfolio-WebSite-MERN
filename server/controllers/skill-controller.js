@@ -5,6 +5,7 @@ const Skill = require("../models/skill-model");
 // @route   GET /api/skills
 // @access  Public
 const getSkills = asyncHandler(async (req, res) => {
+  res.set("Cache-Control", "public, max-age=60");
   const skills = await Skill.find().sort({ order: 1, category: 1 });
   res.status(200).json(skills);
 });

@@ -33,6 +33,14 @@ const getContacts = asyncHandler(async (req, res) => {
   res.status(200).json(contacts);
 });
 
+// @desc    Get unread message count (for notification badge)
+// @route   GET /api/contact/unread-count
+// @access  Private
+const getUnreadCount = asyncHandler(async (req, res) => {
+  const count = await Contact.countDocuments({ isRead: false });
+  res.status(200).json({ count });
+});
+
 // @desc    Mark message as read
 // @route   PUT /api/contact/:id
 // @access  Private
@@ -45,6 +53,32 @@ const markAsRead = asyncHandler(async (req, res) => {
   }
 
   contact.isRead = true;
+  await contact.save();
+
+  res.status(200).json(contact);
+});
+
+// @desc    Reply to a contact message
+// @route   PUT /api/contact/:id/reply
+// @access  Private
+const replyContact = asyncHandler(async (req, res) => {
+  const { reply } = req.body;
+
+  if (!reply || !reply.trim()) {
+    res.status(400);
+    throw new Error("Reply text is required");
+  }
+
+  const contact = await Contact.findById(req.params.id);
+
+  if (!contact) {
+    res.status(404);
+    throw new Error("Message not found");
+  }
+
+  contact.reply = reply.trim();
+  contact.repliedAt = new Date();
+  contact.isRead = true; // auto-mark as read when replied
   await contact.save();
 
   res.status(200).json(contact);
@@ -68,6 +102,8 @@ const deleteContact = asyncHandler(async (req, res) => {
 module.exports = {
   submitContact,
   getContacts,
+  getUnreadCount,
   markAsRead,
+  replyContact,
   deleteContact,
 };

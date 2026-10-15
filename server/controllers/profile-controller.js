@@ -22,6 +22,7 @@ const getProfile = asyncHandler(async (req, res) => {
     });
   }
 
+  res.set("Cache-Control", "public, max-age=30");
   res.status(200).json(profile);
 });
 

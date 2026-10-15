@@ -5,6 +5,7 @@ const Project = require("../models/project-model");
 // @route   GET /api/projects
 // @access  Public
 const getProjects = asyncHandler(async (req, res) => {
+  res.set("Cache-Control", "public, max-age=60");
   const projects = await Project.find().sort({ order: 1, createdAt: -1 });
   res.status(200).json(projects);
 });
