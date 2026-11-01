@@ -34,11 +34,17 @@ You will create **two** Vercel projects from the same GitHub repo:
    |---|---|
    | `MONGO_URI` | your string from Step 2 |
    | `JWT_SECRET` | any long random text (e.g. 40 random letters/numbers) |
+   | `TOTP_ENCRYPTION_KEY` | a dedicated 32-byte key generated with the command below |
    | `CLIENT_URL` | leave empty for now (filled in Step 5) |
 6. Click **Deploy**.
 7. Open the URL Vercel gives you (e.g. `https://portfolio-api.vercel.app`). You should see:
    `{"message":"Portfolio API is running successfully"}`
    Then open `/api/projects` on the same URL - you should see `[]` (empty list, not an error).
+
+Generate `TOTP_ENCRYPTION_KEY` locally with:
+`node -e "console.log(require('crypto').randomBytes(32).toString('base64'))"`
+Keep this key secret and stable; changing it makes existing authenticator secrets unreadable.
+The backend runtime must use Node.js 20.19 or newer.
 
 ## Step 4 - Deploy the Frontend on Vercel
 1. Vercel -> **Add New -> Project** -> import the same repo again.

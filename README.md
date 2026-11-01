@@ -251,10 +251,16 @@ POST http://localhost:8000/api/auth/register
 PORT=8000
 MONGO_URI=your_mongodb_connection_string
 JWT_SECRET=your_jwt_secret_key
+TOTP_ENCRYPTION_KEY=generate_a_32_byte_base64_key
 CLIENT_URL=https://your-frontend.vercel.app
 ADMIN_EMAIL=you@example.com
 ADMIN_PASSWORD=choose_a_strong_password
 ```
+
+Generate `TOTP_ENCRYPTION_KEY` with
+`node -e "console.log(require('crypto').randomBytes(32).toString('base64'))"`.
+Store it as a deployment secret and keep it stable; changing it makes existing authenticator secrets unreadable.
+The backend requires Node.js 20.19 or newer.
 
 ---
 

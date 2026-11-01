@@ -2,6 +2,7 @@ import { useState } from "react";
 import axios from "axios";
 import { toast } from "react-toastify";
 import { FaLock, FaKey, FaEye, FaEyeSlash } from "react-icons/fa";
+import TwoFactorAuth from "../../global/components/TwoFactorAuth";
 
 const ChangePassword = () => {
   const [formData, setFormData] = useState({
@@ -178,9 +179,9 @@ const ChangePassword = () => {
           </form>
         </div>
       </div>
+      <TwoFactorAuth />
     </div>
   );
 };
 
 export default ChangePassword;
-

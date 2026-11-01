@@ -1,31 +1,103 @@
 const jwt = require("jsonwebtoken");
 const asyncHandler = require("express-async-handler");
 const User = require("../models/user-model");
+const {
+  validateJwtSecret,
+  isValidJwtFormat,
+} = require("../utills/auth-validator");
 
+/**
+ * Protect middleware:
+ * - Validates JWT format
+ * - Verifies signature using validated JWT_SECRET
+ * - Prevents internal error leakage
+ * - Loads user and enforces admin role
+ */
 const protect = asyncHandler(async (req, res, next) => {
-  const header = req.headers.authorization;
+  const authHeader = req.headers.authorization;
 
-  if (!header || !header.startsWith("Bearer ")) {
-    res.status(401);
-    throw new Error("Not authorized, no token");
+  if (!authHeader || !authHeader.startsWith("Bearer ")) {
+    return res.status(401).json({
+      message: "Not authorized, no token provided",
+    });
+  }
+
+  const token = authHeader.slice(7).trim();
+
+  // Validate token structure before calling crypto functions
+  if (!isValidJwtFormat(token)) {
+    return res.status(401).json({
+      message: "Not authorized, invalid token format",
+    });
+  }
+
+  // Ensure JWT secret is valid and strong
+  const secretValidation = validateJwtSecret();
+  if (!secretValidation.valid) {
+    console.error("JWT Configuration Failure:", secretValidation.message);
+    return res.status(500).json({
+      message: "Authentication service configuration error",
+    });
   }
 
   let decoded;
   try {
-    decoded = jwt.verify(header.split(" ")[1], process.env.JWT_SECRET);
-  } catch (error) {
-    res.status(401);
-    throw new Error("Not authorized, token failed");
+    decoded = jwt.verify(token, secretValidation.secret);
+  } catch (err) {
+    // Return consistent 401 response without exposing internal error or stack traces
+    return res.status(401).json({
+      message: "Not authorized, token invalid or expired",
+    });
   }
 
-  const user = await User.findById(decoded.id).select("-password");
+  if (!decoded || !decoded.id) {
+    return res.status(401).json({
+      message: "Not authorized, token payload is invalid",
+    });
+  }
+
+  let user;
+  try {
+    user = await User.findById(decoded.id).select("-password");
+  } catch (err) {
+    return res.status(401).json({
+      message: "Not authorized, user lookup failed",
+    });
+  }
+
   if (!user) {
-    res.status(401);
-    throw new Error("Not authorized, user not found");
+    return res.status(401).json({
+      message: "Not authorized, user not found",
+    });
+  }
+
+  if (user.twoFactorEnabled && decoded.mfa !== true) {
+    return res.status(401).json({
+      message: "Not authorized, multi-factor authentication is required",
+    });
+  }
+
+  // Enforce role authorization
+  if (user.role !== "admin") {
+    return res.status(403).json({
+      message: "Forbidden: Admin privileges required",
+    });
   }
 
   req.user = user;
   next();
 });
 
-module.exports = { protect };
+/**
+ * Explicit role check middleware for routes requiring admin privileges
+ */
+const adminOnly = (req, res, next) => {
+  if (!req.user || req.user.role !== "admin") {
+    return res.status(403).json({
+      message: "Forbidden: Admin privileges required",
+    });
+  }
+  next();
+};
+
+module.exports = { protect, adminOnly };
