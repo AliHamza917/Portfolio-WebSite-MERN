@@ -5,7 +5,8 @@
   "scripts": {
     "start": "node index.js",
     "dev": "nodemon index.js",
-    "seed": "node utills/seed.js"
+    "seed": "node utills/seed.js",
+    "reset-admin-password": "node utills/reset-admin-password.js"
   },
   "author": "Ali Hamza",
   "license": "MIT",

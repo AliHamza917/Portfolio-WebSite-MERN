@@ -58,7 +58,7 @@ const protect = asyncHandler(async (req, res, next) => {
 
   let user;
   try {
-    user = await User.findById(decoded.id).select("-password");
+    user = await User.findById(decoded.id).select("-password +sessionVersion");
   } catch (err) {
     return res.status(401).json({
       message: "Not authorized, user lookup failed",
@@ -68,6 +68,12 @@ const protect = asyncHandler(async (req, res, next) => {
   if (!user) {
     return res.status(401).json({
       message: "Not authorized, user not found",
+    });
+  }
+
+  if ((decoded.sv || 0) !== (user.sessionVersion || 0)) {
+    return res.status(401).json({
+      message: "Not authorized, please sign in again",
     });
   }
 

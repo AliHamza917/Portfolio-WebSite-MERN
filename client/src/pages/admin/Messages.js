@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback } from "react";
 import axios from "axios";
 import { toast } from "react-toastify";
 
@@ -9,7 +9,6 @@ const AdminMessages = () => {
   const [replyText, setReplyText] = useState("");
   const [replying, setReplying] = useState(false);
   const [filter, setFilter] = useState("all"); // all | unread | replied
-  const autoMarkQueue = useRef(new Set());
 
   const getConfig = () => {
     const token = localStorage.getItem("adminToken");
@@ -31,25 +30,17 @@ const AdminMessages = () => {
     fetchMessages();
   }, [fetchMessages]);
 
-  // Auto-mark unread messages as read after 2 seconds of viewing
-  useEffect(() => {
-    const unread = messages.filter((m) => !m.isRead);
-    unread.forEach((msg) => {
-      if (!autoMarkQueue.current.has(msg._id)) {
-        autoMarkQueue.current.add(msg._id);
-        setTimeout(async () => {
-          try {
-            await axios.put(`/api/contact/${msg._id}`, {}, getConfig());
-            setMessages((prev) =>
-              prev.map((m) => (m._id === msg._id ? { ...m, isRead: true } : m))
-            );
-          } catch {
-            // silent fail
-          }
-        }, 2000);
-      }
-    });
-  }, [messages]);
+  const handleMarkAsRead = async (id) => {
+    try {
+      await axios.put(`/api/contact/${id}`, {}, getConfig());
+      setMessages((prev) =>
+        prev.map((m) => (m._id === id ? { ...m, isRead: true } : m))
+      );
+      toast.success("Marked as read");
+    } catch {
+      toast.error("Failed to mark as read");
+    }
+  };
 
   const handleDelete = async (id) => {
     if (!window.confirm("Delete this message?")) return;
@@ -197,6 +188,14 @@ const AdminMessages = () => {
 
                 {/* Actions */}
                 <div className="card-actions justify-end gap-2 mt-1">
+                  {!msg.isRead && (
+                    <button
+                      className="btn btn-sm btn-ghost btn-outline gap-1"
+                      onClick={() => handleMarkAsRead(msg._id)}
+                    >
+                      ✓ Mark Read
+                    </button>
+                  )}
                   <button
                     className="btn btn-sm btn-primary gap-1"
                     onClick={() => openReply(msg)}

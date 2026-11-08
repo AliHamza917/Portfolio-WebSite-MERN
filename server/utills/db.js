@@ -8,7 +8,13 @@ const DBconnection = async () => {
   if (!process.env.MONGO_URI) {
     throw new Error("MONGO_URI is not set. Add it to your environment variables.");
   }
-  if (cached.conn) return cached.conn;
+  if (cached.conn && mongoose.connection.readyState === 1) return cached.conn;
+
+  // Reset cache if connection was dropped
+  if (mongoose.connection.readyState === 0) {
+    cached.conn = null;
+    cached.promise = null;
+  }
 
   if (!cached.promise) {
     cached.promise = mongoose

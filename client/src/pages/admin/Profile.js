@@ -23,8 +23,10 @@ const AdminProfile = () => {
   });
   const [loading, setLoading] = useState(false);
 
-  const token = localStorage.getItem("adminToken");
-  const config = { headers: { Authorization: `Bearer ${token}` } };
+  const getAuthConfig = () => {
+    const token = localStorage.getItem("adminToken");
+    return { headers: { Authorization: `Bearer ${token}` } };
+  };
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -39,12 +41,12 @@ const AdminProfile = () => {
           location: data.location || "",
           profilePhoto: data.profilePhoto || "",
           resumeLink: data.resumeLink || "",
-          socialLinks: data.socialLinks || {
-            github: "",
-            linkedin: "",
-            twitter: "",
-            instagram: "",
-            website: "",
+          socialLinks: {
+            github: data.socialLinks?.github || "",
+            linkedin: data.socialLinks?.linkedin || "",
+            twitter: data.socialLinks?.twitter || "",
+            instagram: data.socialLinks?.instagram || "",
+            website: data.socialLinks?.website || "",
           },
         });
       } catch (error) {
@@ -71,7 +73,7 @@ const AdminProfile = () => {
     e.preventDefault();
     setLoading(true);
     try {
-      await axios.put("/api/profile", formData, config);
+      await axios.put("/api/profile", formData, getAuthConfig());
       toast.success("Profile updated successfully");
     } catch (error) {
       toast.error(error.response?.data?.message || "Update failed");
@@ -180,6 +182,14 @@ const AdminProfile = () => {
             placeholder="Instagram URL"
             className="input input-bordered"
             value={formData.socialLinks.instagram}
+            onChange={handleChange}
+          />
+          <input
+            type="text"
+            name="social_website"
+            placeholder="Personal Website / Portfolio URL"
+            className="input input-bordered md:col-span-2"
+            value={formData.socialLinks.website}
             onChange={handleChange}
           />
 

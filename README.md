@@ -263,6 +263,14 @@ Generate `TOTP_ENCRYPTION_KEY` with
 Store it as a deployment secret and keep it stable; changing it makes existing authenticator secrets unreadable.
 The backend requires Node.js 20.19 or newer.
 
+### Reset a forgotten admin password
+
+Set `MONGO_URI` and `ADMIN_EMAIL` in `server/utills/.env` (or `server/.env`),
+then run `npm --prefix server run reset-admin-password` from the repository root.
+The command prompts for the new password twice without displaying it, validates
+it, and updates only that admin account. Confirm that `MONGO_URI` points to the
+intended database before running it. Authenticator settings are preserved.
+
 ---
 
 ## 👨‍💻 Author

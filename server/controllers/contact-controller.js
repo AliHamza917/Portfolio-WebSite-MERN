@@ -7,16 +7,22 @@ const Contact = require("../models/contact-model");
 const submitContact = asyncHandler(async (req, res) => {
   const { name, email, subject, message } = req.body;
 
-  if (!name || !email || !message) {
+  if (!name || !name.trim() || !email || !email.trim() || !message || !message.trim()) {
     res.status(400);
     throw new Error("Name, email and message are required");
   }
 
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!emailRegex.test(email.trim())) {
+    res.status(400);
+    throw new Error("Please enter a valid email address");
+  }
+
   const contact = await Contact.create({
-    name,
-    email,
-    subject: subject || "",
-    message,
+    name: name.trim(),
+    email: email.trim().toLowerCase(),
+    subject: (subject || "").trim(),
+    message: message.trim(),
   });
 
   res.status(201).json({

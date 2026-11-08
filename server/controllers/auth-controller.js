@@ -25,14 +25,14 @@ const DUMMY_HASH =
   "$2a$10$7EqJtq98hPqEX7fNZaFWoO.8/k0g24zW2w6c0g9B4K9hB.Mh38qma";
 
 // Generate JWT with validation
-const generateToken = (id, mfaVerified = false) => {
+const generateToken = (id, mfaVerified = false, sessionVersion = 0) => {
   const secretValidation = validateJwtSecret();
   if (!secretValidation.valid) {
     throw new Error(secretValidation.message);
   }
 
   return jwt.sign(
-    { id, ...(mfaVerified ? { mfa: true } : {}) },
+    { id, sv: sessionVersion, ...(mfaVerified ? { mfa: true } : {}) },
     secretValidation.secret,
     {
       expiresIn: "30d",
@@ -42,7 +42,7 @@ const generateToken = (id, mfaVerified = false) => {
 
 const getUserWithTwoFactorSecrets = (id) =>
   User.findById(id).select(
-    "+twoFactorSecret +pendingTwoFactorSecret +pendingTwoFactorExpiresAt +recoveryCodeHashes +lastTotpTimeStep +mfaChallengeHash +mfaChallengeExpiresAt"
+    "+sessionVersion +twoFactorSecret +pendingTwoFactorSecret +pendingTwoFactorExpiresAt +recoveryCodeHashes +lastTotpTimeStep +mfaChallengeHash +mfaChallengeExpiresAt"
   );
 
 const respondWithLogin = (res, user, mfaVerified = false) =>
@@ -51,7 +51,7 @@ const respondWithLogin = (res, user, mfaVerified = false) =>
     name: user.name,
     email: user.email,
     role: user.role,
-    token: generateToken(user._id, mfaVerified),
+    token: generateToken(user._id, mfaVerified, user.sessionVersion || 0),
   });
 
 const consumeSecondFactor = async (user, token, options = {}) => {
@@ -186,7 +186,7 @@ const registerUser = asyncHandler(async (req, res) => {
       name: user.name,
       email: user.email,
       role: user.role,
-      token: generateToken(user._id),
+      token: generateToken(user._id, false, user.sessionVersion || 0),
     });
   } else {
     res.status(400).json({
@@ -230,7 +230,9 @@ const loginUser = asyncHandler(async (req, res) => {
   }
 
   const normalizedEmail = email.toLowerCase().trim();
-  const user = await User.findOne({ email: normalizedEmail });
+  const user = await User.findOne({ email: normalizedEmail }).select(
+    "+sessionVersion"
+  );
 
   if (!user) {
     // Timing attack mitigation: perform fake bcrypt compare when user not found
@@ -290,7 +292,7 @@ const verifyLoginTwoFactor = asyncHandler(async (req, res) => {
     twoFactorEnabled: true,
     role: "admin",
   }).select(
-    "+twoFactorSecret +recoveryCodeHashes +lastTotpTimeStep +mfaChallengeHash +mfaChallengeExpiresAt"
+    "+sessionVersion +twoFactorSecret +recoveryCodeHashes +lastTotpTimeStep +mfaChallengeHash +mfaChallengeExpiresAt"
   );
 
   if (!user) {
@@ -404,7 +406,7 @@ const enableTwoFactor = asyncHandler(async (req, res) => {
       },
     },
     { new: true }
-  );
+  ).select("+sessionVersion");
 
   if (!enabledUser) {
     return res.status(409).json({ message: "Authenticator setup expired. Start setup again." });
@@ -413,7 +415,11 @@ const enableTwoFactor = asyncHandler(async (req, res) => {
   res.status(200).json({
     enabled: true,
     recoveryCodes,
-    token: generateToken(enabledUser._id, true),
+    token: generateToken(
+      enabledUser._id,
+      true,
+      enabledUser.sessionVersion || 0
+    ),
     message: "Authenticator login enabled. Save these recovery codes somewhere safe.",
   });
 });
@@ -465,7 +471,9 @@ const disableTwoFactor = asyncHandler(async (req, res) => {
 // @route   GET /api/auth/me
 // @access  Private
 const getMe = asyncHandler(async (req, res) => {
-  res.status(200).json(req.user);
+  const user = req.user.toObject();
+  delete user.sessionVersion;
+  res.status(200).json(user);
 });
 
 // @desc    Change password
@@ -499,7 +507,7 @@ const changePassword = asyncHandler(async (req, res) => {
     });
   }
 
-  const user = await User.findById(req.user._id);
+  const user = await User.findById(req.user._id).select("+sessionVersion");
   if (!user) {
     return res.status(404).json({
       message: "User not found",
@@ -515,6 +523,7 @@ const changePassword = asyncHandler(async (req, res) => {
 
   // Securely update only the password field
   user.password = newPassword;
+  user.sessionVersion = (user.sessionVersion || 0) + 1;
   await user.save();
 
   res.status(200).json({

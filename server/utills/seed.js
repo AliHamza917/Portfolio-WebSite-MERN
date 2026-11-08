@@ -3,7 +3,12 @@
  * Usage: node utills/seed.js
  * (Make sure .env is configured first)
  */
-require("dotenv").config({ path: require("path").join(__dirname, ".env") });
+const fs = require("fs");
+const path = require("path");
+const envPath = fs.existsSync(path.join(__dirname, ".env"))
+  ? path.join(__dirname, ".env")
+  : path.join(__dirname, "..", ".env");
+require("dotenv").config({ path: envPath });
 const mongoose = require("mongoose");
 const Project = require("../models/project-model");
 const Skill = require("../models/skill-model");

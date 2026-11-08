@@ -8,10 +8,12 @@ const AdminLayout = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const [unreadCount, setUnreadCount] = useState(0);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const fetchUnreadCount = useCallback(async () => {
     try {
       const token = localStorage.getItem("adminToken");
+      if (!token) return;
       const { data } = await axios.get("/api/contact/unread-count", {
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -25,6 +27,11 @@ const AdminLayout = () => {
   useEffect(() => {
     fetchUnreadCount();
   }, [fetchUnreadCount, location.pathname]);
+
+  // Close mobile sidebar on route change
+  useEffect(() => {
+    setSidebarOpen(false);
+  }, [location.pathname]);
 
   // Poll every 30 seconds for new messages
   useEffect(() => {
@@ -50,14 +57,36 @@ const AdminLayout = () => {
       badge: unreadCount,
     },
     { to: "/admin/profile", label: "Profile", icon: "👤" },
+    { to: "/admin/change-password", label: "Change Password", icon: "🔑" },
   ];
 
   return (
     <div className="min-h-screen bg-base-200">
       {/* Top Navbar */}
       <div className="navbar bg-base-300 shadow-lg px-4 sticky top-0 z-50">
+        <div className="flex-none md:hidden mr-2">
+          <button
+            onClick={() => setSidebarOpen(!sidebarOpen)}
+            className="btn btn-square btn-ghost btn-sm"
+            aria-label="Toggle Navigation Menu"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              className="inline-block w-5 h-5 stroke-current"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="2"
+                d="M4 6h16M4 12h16M4 18h16"
+              ></path>
+            </svg>
+          </button>
+        </div>
         <div className="flex-1">
-          <Link to="/admin" className="btn btn-ghost text-xl font-bold tracking-wide">
+          <Link to="/admin" className="btn btn-ghost text-lg sm:text-xl font-bold tracking-wide">
             ⚙️ Admin Panel
           </Link>
         </div>
@@ -72,9 +101,21 @@ const AdminLayout = () => {
         </div>
       </div>
 
-      <div className="flex">
+      <div className="flex relative">
+        {/* Mobile Backdrop */}
+        {sidebarOpen && (
+          <div
+            className="fixed inset-0 bg-black/50 z-40 md:hidden"
+            onClick={() => setSidebarOpen(false)}
+          ></div>
+        )}
+
         {/* Sidebar */}
-        <div className="w-64 min-h-[calc(100vh-64px)] bg-base-300 p-4 shadow-lg">
+        <aside
+          className={`fixed md:static top-16 bottom-0 left-0 z-40 w-64 bg-base-300 p-4 shadow-lg transition-transform duration-300 ease-in-out md:translate-x-0 min-h-[calc(100vh-64px)] ${
+            sidebarOpen ? "translate-x-0" : "-translate-x-full"
+          }`}
+        >
           <ul className="menu menu-vertical gap-1">
             {navItems.map(({ to, label, icon, badge }) => {
               const isActive =
@@ -101,10 +142,10 @@ const AdminLayout = () => {
               );
             })}
           </ul>
-        </div>
+        </aside>
 
         {/* Main Content */}
-        <div className="flex-1 p-6 overflow-auto">
+        <div className="flex-1 p-4 sm:p-6 overflow-auto w-full max-w-full">
           <Outlet />
         </div>
       </div>

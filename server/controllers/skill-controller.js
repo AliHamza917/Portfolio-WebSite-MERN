@@ -5,7 +5,7 @@ const Skill = require("../models/skill-model");
 // @route   GET /api/skills
 // @access  Public
 const getSkills = asyncHandler(async (req, res) => {
-  res.set("Cache-Control", "public, max-age=60");
+  res.set("Cache-Control", "no-cache, must-revalidate");
   const skills = await Skill.find().sort({ order: 1, category: 1 });
   res.status(200).json(skills);
 });
@@ -16,17 +16,17 @@ const getSkills = asyncHandler(async (req, res) => {
 const createSkill = asyncHandler(async (req, res) => {
   const { name, category, level, icon, order } = req.body;
 
-  if (!name) {
+  if (!name || !name.trim()) {
     res.status(400);
     throw new Error("Skill name is required");
   }
 
   const skill = await Skill.create({
-    name,
+    name: name.trim(),
     category: category || "Other",
-    level: level || 70,
-    icon,
-    order: order || 0,
+    level: level !== undefined && level !== "" ? Number(level) : 70,
+    icon: icon || "",
+    order: Number(order) || 0,
   });
 
   res.status(201).json(skill);
@@ -43,7 +43,24 @@ const updateSkill = asyncHandler(async (req, res) => {
     throw new Error("Skill not found");
   }
 
-  const updatedSkill = await Skill.findByIdAndUpdate(req.params.id, req.body, {
+  // Prevent modifying immutable fields
+  const updateData = { ...req.body };
+  delete updateData._id;
+  delete updateData.createdAt;
+  delete updateData.updatedAt;
+  delete updateData.__v;
+
+  if (updateData.name) {
+    updateData.name = updateData.name.trim();
+  }
+  if (updateData.level !== undefined && updateData.level !== "") {
+    updateData.level = Number(updateData.level);
+  }
+  if (updateData.order !== undefined && updateData.order !== "") {
+    updateData.order = Number(updateData.order);
+  }
+
+  const updatedSkill = await Skill.findByIdAndUpdate(req.params.id, updateData, {
     new: true,
     runValidators: true,
   });

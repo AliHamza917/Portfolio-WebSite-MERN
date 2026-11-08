@@ -1,10 +1,12 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { toast } from "react-toastify";
 import { FaLock, FaKey, FaEye, FaEyeSlash } from "react-icons/fa";
 import TwoFactorAuth from "../../global/components/TwoFactorAuth";
 
 const ChangePassword = () => {
+  const navigate = useNavigate();
   const [formData, setFormData] = useState({
     currentPassword: "",
     newPassword: "",
@@ -43,7 +45,7 @@ const ChangePassword = () => {
         },
       };
 
-      const { data } = await axios.put(
+      await axios.put(
         "/api/auth/change-password",
         {
           currentPassword: formData.currentPassword,
@@ -52,12 +54,15 @@ const ChangePassword = () => {
         config
       );
 
-      toast.success(data.message || "Password changed successfully!");
+      toast.success("Password updated. Please sign in again.");
       setFormData({
         currentPassword: "",
         newPassword: "",
         confirmPassword: "",
       });
+      localStorage.removeItem("adminToken");
+      localStorage.removeItem("adminUser");
+      navigate("/admin/login", { replace: true });
     } catch (error) {
       toast.error(
         error.response?.data?.message || "Failed to update password"

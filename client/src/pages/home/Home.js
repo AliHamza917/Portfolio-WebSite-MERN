@@ -129,8 +129,8 @@ const Home = () => {
       if (projectSort === "alphabetical") {
         return (a.title || "").localeCompare(b.title || "");
       }
-      // default: by order
-      return (a.order ?? 0) - (b.order ?? 0);
+      // default: by order, then newest
+      return (a.order ?? 0) - (b.order ?? 0) || new Date(b.createdAt) - new Date(a.createdAt);
     });
 
     return result;
@@ -225,7 +225,7 @@ const Home = () => {
           {profile?.profilePhoto && (
             <div className="avatar mb-6 animate-float flex justify-center">
               <div className="w-36 sm:w-44 rounded-full ring-4 ring-primary ring-offset-base-100 ring-offset-4 animate-pulse-glow shadow-2xl">
-                <img src={profile.profilePhoto} alt={profile.name} />
+                <img src={profile.profilePhoto} alt={profile?.name || "Profile"} onError={(e) => { e.target.src = "https://avatars.githubusercontent.com/u/127236697?v=4"; }} />
               </div>
             </div>
           )}
@@ -670,7 +670,7 @@ const Home = () => {
                   className="card bg-base-100 shadow-xl card-hover group border border-base-content/10 overflow-hidden flex flex-col justify-between"
                 >
                   {project.image ? (
-                    <figure className="overflow-hidden h-52 bg-base-300 relative">
+                    <figure className="overflow-hidden h-48 bg-base-300 relative">
                       {project.featured && (
                         <div className="absolute top-3 right-3 z-10 badge badge-warning gap-1 font-semibold text-xs shadow-md">
                           <FaStar className="text-xs" /> Featured
@@ -683,7 +683,7 @@ const Home = () => {
                       />
                     </figure>
                   ) : (
-                    <div className="h-44 bg-gradient-to-br from-primary/15 via-secondary/10 to-base-300 flex items-center justify-center p-6 border-b border-base-content/10 relative">
+                    <div className="h-48 bg-gradient-to-br from-primary/15 via-secondary/10 to-base-300 flex items-center justify-center p-6 border-b border-base-content/10 relative">
                       {project.featured && (
                         <div className="absolute top-3 right-3 z-10 badge badge-warning gap-1 font-semibold text-xs shadow-md">
                           <FaStar className="text-xs" /> Featured

@@ -48,7 +48,10 @@ const AdminSkills = () => {
       const payload = {
         ...formData,
         order: Number(formData.order) || 0,
-        level: Number(formData.level) || 70,
+        level:
+          formData.level !== "" && !isNaN(formData.level)
+            ? Number(formData.level)
+            : 70,
       };
 
       if (editingId) {
@@ -93,7 +96,7 @@ const AdminSkills = () => {
     try {
       await axios.put(
         `/api/skills/${skill._id}`,
-        { ...skill, order: newOrder },
+        { order: newOrder },
         getAuthConfig()
       );
       toast.success(`Updated order to #${newOrder}`);

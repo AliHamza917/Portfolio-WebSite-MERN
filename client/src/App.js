@@ -1,5 +1,5 @@
 import { lazy, Suspense } from "react";
-import { Routes, Route } from "react-router-dom";
+import { Routes, Route, Navigate } from "react-router-dom";
 import MainLayout from "./global/layouts/MainLayout";
 import AdminLayout from "./global/layouts/AdminLayout";
 import PrivateRoute from "./global/components/PrivateRoute";
@@ -48,6 +48,9 @@ function App() {
           <Route path="profile" element={<AdminProfile />} />
           <Route path="change-password" element={<ChangePassword />} />
         </Route>
+
+        {/* Catch-all fallback */}
+        <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </Suspense>
   );

@@ -29,6 +29,11 @@ const userSchema = new mongoose.Schema(
       enum: ["admin", "user"],
       default: "admin",
     },
+    sessionVersion: {
+      type: Number,
+      default: 0,
+      select: false,
+    },
     twoFactorEnabled: {
       type: Boolean,
       default: false,

@@ -5,7 +5,7 @@ const Project = require("../models/project-model");
 // @route   GET /api/projects
 // @access  Public
 const getProjects = asyncHandler(async (req, res) => {
-  res.set("Cache-Control", "public, max-age=60");
+  res.set("Cache-Control", "no-cache, must-revalidate");
   const projects = await Project.find().sort({ order: 1, createdAt: -1 });
   res.status(200).json(projects);
 });
@@ -36,12 +36,12 @@ const createProject = asyncHandler(async (req, res) => {
   const project = await Project.create({
     title,
     description,
-    techStack: techStack || [],
-    liveLink,
-    githubLink,
-    image,
-    featured: featured || false,
-    order: order || 0,
+    techStack: Array.isArray(techStack) ? techStack.filter(Boolean) : [],
+    liveLink: liveLink || "",
+    githubLink: githubLink || "",
+    image: image || "",
+    featured: Boolean(featured),
+    order: Number(order) || 0,
   });
 
   res.status(201).json(project);
@@ -58,7 +58,18 @@ const updateProject = asyncHandler(async (req, res) => {
     throw new Error("Project not found");
   }
 
-  const updatedProject = await Project.findByIdAndUpdate(req.params.id, req.body, {
+  // Prevent modifying immutable fields
+  const updateData = { ...req.body };
+  delete updateData._id;
+  delete updateData.createdAt;
+  delete updateData.updatedAt;
+  delete updateData.__v;
+
+  if (updateData.techStack && Array.isArray(updateData.techStack)) {
+    updateData.techStack = updateData.techStack.filter(Boolean);
+  }
+
+  const updatedProject = await Project.findByIdAndUpdate(req.params.id, updateData, {
     new: true,
     runValidators: true,
   });

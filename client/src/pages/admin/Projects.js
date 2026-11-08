@@ -52,7 +52,10 @@ const AdminProjects = () => {
       ...formData,
       order: Number(formData.order) || 0,
       techStack: formData.techStack
-        ? formData.techStack.split(",").map((t) => t.trim())
+        ? formData.techStack
+            .split(",")
+            .map((t) => t.trim())
+            .filter(Boolean)
         : [],
     };
 
@@ -116,7 +119,7 @@ const AdminProjects = () => {
     try {
       await axios.put(
         `/api/projects/${project._id}`,
-        { ...project, order: newOrder },
+        { order: newOrder },
         getAuthConfig()
       );
       toast.success(`Updated order to #${newOrder}`);
