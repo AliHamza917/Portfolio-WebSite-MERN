@@ -3,7 +3,7 @@
 A full-stack dynamic personal portfolio website built with the **MERN Stack** (MongoDB, Express.js, React.js, Node.js).  
 Includes a public portfolio frontend and a protected **Admin Panel** for managing projects, skills, personal info, and contact messages.
 
-**Live Demo:** Coming soon  
+**Live Demo:** https://portfolio-website-mern-one.vercel.app 
 **GitHub:** https://github.com/AliHamza917/Portfolio-WebSite-MERN
 
 ---
