@@ -531,7 +531,18 @@ const changePassword = asyncHandler(async (req, res) => {
   });
 });
 
+// @desc    Check whether the application requires first-time admin setup
+// @route   GET /api/auth/setup-status
+// @access  Public
+const getSetupStatus = asyncHandler(async (req, res) => {
+  const count = await User.countDocuments();
+  res.status(200).json({
+    needsSetup: count === 0,
+  });
+});
+
 module.exports = {
+  getSetupStatus,
   registerUser,
   loginUser,
   verifyLoginTwoFactor,

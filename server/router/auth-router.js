@@ -1,6 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const {
+  getSetupStatus,
   registerUser,
   loginUser,
   verifyLoginTwoFactor,
@@ -19,6 +20,7 @@ const {
   twoFactorLimiter,
 } = require("../middleware/rate-limiter");
 
+router.get("/setup-status", getSetupStatus);
 router.post("/register", registerLimiter, registerUser);
 router.post("/login", loginLimiter, loginUser);
 router.post("/login/totp", twoFactorLimiter, verifyLoginTwoFactor);
