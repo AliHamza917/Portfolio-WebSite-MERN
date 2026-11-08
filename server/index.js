@@ -82,27 +82,30 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // Health check (does not need the database)
-app.get(["/", "/api"], (req, res) => {
+app.get(["/", "/api", "/api/health"], (req, res) => {
   res.json({ message: "Portfolio API is running successfully" });
 });
 
-// Make sure the database is connected before any /api route runs
-app.use("/api", async (req, res, next) => {
-  try {
-    await DBconnection();
-    next();
-  } catch (error) {
-    console.error("MongoDB Connection Error:", error.message);
-    res.status(500).json({ message: "Database connection failed" });
+// Make sure the database is connected before any API route runs
+app.use(
+  ["/api", "/auth", "/projects", "/skills", "/contact", "/profile"],
+  async (req, res, next) => {
+    try {
+      await DBconnection();
+      next();
+    } catch (error) {
+      console.error("MongoDB Connection Error:", error.message);
+      res.status(500).json({ message: "Database connection failed" });
+    }
   }
-});
+);
 
-// Routes
-app.use("/api/auth", authRouter);
-app.use("/api/projects", projectRouter);
-app.use("/api/skills", skillRouter);
-app.use("/api/contact", contactRouter);
-app.use("/api/profile", profileRouter);
+// Routes (support both with and without /api prefix)
+app.use(["/api/auth", "/auth"], authRouter);
+app.use(["/api/projects", "/projects"], projectRouter);
+app.use(["/api/skills", "/skills"], skillRouter);
+app.use(["/api/contact", "/contact"], contactRouter);
+app.use(["/api/profile", "/profile"], profileRouter);
 
 // Error handling middleware
 app.use(errorHandler);
