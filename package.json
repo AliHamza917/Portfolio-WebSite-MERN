@@ -2,6 +2,10 @@
   "name": "portfolio-mern-root",
   "version": "1.0.0",
   "private": true,
+  "workspaces": [
+    "server",
+    "client"
+  ],
   "scripts": {
     "install-all": "npm install && npm --prefix server install && npm --prefix client install",
     "start": "concurrently -n \"SERVER,CLIENT\" -c \"blue,green\" \"npm --prefix server run dev\" \"npm --prefix client start\"",

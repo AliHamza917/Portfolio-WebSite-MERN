@@ -23,6 +23,26 @@
       "dest": "server/index.js"
     },
     {
+      "src": "/static/(.*)",
+      "dest": "client/static/$1"
+    },
+    {
+      "src": "/favicon.ico",
+      "dest": "client/favicon.ico"
+    },
+    {
+      "src": "/manifest.json",
+      "dest": "client/manifest.json"
+    },
+    {
+      "src": "/logo(.*)",
+      "dest": "client/logo$1"
+    },
+    {
+      "src": "/(.*\\.(?:ico|png|jpg|jpeg|svg|webp|json|txt|woff|woff2|ttf|eot|js|css|map))$",
+      "dest": "client/$1"
+    },
+    {
       "handle": "filesystem"
     },
     {

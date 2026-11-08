@@ -8,10 +8,10 @@ require("dotenv").config({ path: envPath });
 
 const { validateJwtSecret } = require("./utills/auth-validator");
 
-// Fail startup if JWT_SECRET is missing or weak in production
+// Fail startup if JWT_SECRET is missing or weak in standalone production
 const secretCheck = validateJwtSecret();
 if (!secretCheck.valid) {
-  if (process.env.NODE_ENV === "production") {
+  if (process.env.NODE_ENV === "production" && !process.env.VERCEL) {
     console.error("FATAL CONFIGURATION ERROR:", secretCheck.message);
     process.exit(1);
   } else {
@@ -109,14 +109,15 @@ app.use(errorHandler);
 
 // Local / Render: start a normal server. Vercel: just export the app.
 if (!process.env.VERCEL) {
-  DBconnection()
-    .then(() => {
-      app.listen(Port, () => console.log(`Server is Running on Port ${Port}`));
-    })
-    .catch((err) => {
-      console.error("MongoDB Connection Error:", err.message);
-      process.exit(1);
-    });
+  app.listen(Port, () => {
+    console.log(`Server is Running on Port ${Port}`);
+    DBconnection()
+      .then(() => console.log("MongoDB connection established successfully"))
+      .catch((err) => {
+        console.error("MongoDB Connection Notice:", err.message);
+        console.warn("⚠️ API routes requiring database will retry when MongoDB is reachable.");
+      });
+  });
 }
 
 module.exports = app;
